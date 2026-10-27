@@ -3,12 +3,8 @@ package com.example.martinichef_grupo14
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
-import com.example.martinichef_grupo14.ui.screens.ProfileScreen
+import com.example.martinichef_grupo14.navigation.AppNavigation
 import com.example.martinichef_grupo14.ui.theme.MartiniChef_grupo14Theme
 
 class MainActivity : ComponentActivity() {
@@ -17,9 +13,7 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             MartiniChef_grupo14Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ProfileScreen(modifier = Modifier.padding(innerPadding))
-                }
+                AppNavigation()
             }
         }
     }

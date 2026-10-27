@@ -5,25 +5,48 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.martinichef_grupo14.ui.screens.RegistroScreen
-import com.example.martinichef_grupo14.ui.screens.ResumenScreen
-import com.example.martinichef_grupo14.viewmodel.UsuarioViewModel
+import com.example.martinichef_grupo14.ui.screens.*
+import com.example.martinichef_grupo14.viewmodel.*
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    // Creamos la instancia del ViewModel una sola vez para compartirla entre pantallas
+
+    // Instancias de los ViewModels según el tipo requerido por cada pantalla
+    val estadoViewModel: EstadoViewModel = viewModel()
+    val mainViewModel: MainViewModel = viewModel()
     val usuarioViewModel: UsuarioViewModel = viewModel()
 
     NavHost(
         navController = navController,
-        startDestination = "registro"
+        startDestination = "pantalla_principal"
     ) {
-        composable(route = "registro") {
-            RegistroScreen(navController = navController, viewModel = usuarioViewModel)
+        composable("pantalla_principal") {
+            PantallaPrincipal(
+                navController = navController,
+                viewModel = estadoViewModel
+            )
         }
-        composable(route = "resumen") {
-            ResumenScreen(navController = navController, viewModel = usuarioViewModel)
+        composable("registro") {
+            RegistroScreen(
+                navController = navController,
+                viewModel = usuarioViewModel
+            )
+        }
+        composable("perfil") {
+            ProfileScreen()
+        }
+        composable("resumen") {
+            ResumenScreen(
+                navController = navController,
+                viewModel = usuarioViewModel
+            )
+        }
+        composable("settings") {
+            SettingsScreen(
+                navController = navController,
+                viewModel = mainViewModel
+            )
         }
     }
 }
