@@ -1,64 +1,78 @@
 package com.example.martinichef_grupo14.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.martinichef_grupo14.model.UsuarioErrores
-import com.example.martinichef_grupo14.model.UsuarioUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+data class RegistroUiState(
+    val nombre: String = "",
+    val nombreError: String? = null,
+    val email: String = "",
+    val emailError: String? = null,
+    val password: String = "",
+    val passwordError: String? = null,
+    val esValido: Boolean = false
+)
+
 class UsuarioViewModel : ViewModel() {
 
-    // Estado interno mutable
-    private val _estado = MutableStateFlow(UsuarioUiState())
-    // Estado expuesto e inmutable para la UI
-    val estado: StateFlow<UsuarioUiState> = _estado.asStateFlow()
+    private val _uiState = MutableStateFlow(RegistroUiState())
+    val uiState: StateFlow<RegistroUiState> = _uiState.asStateFlow()
 
-    // Actualiza el campo nombre y limpia su error
-    fun onNombreChange(valor: String) {
-        _estado.update { it.copy(nombre = valor, errores = it.errores.copy(nombre = null)) }
+    fun onNombreChanged(nuevoNombre: String) {
+        _uiState.update { current ->
+            current.copy(
+                nombre = nuevoNombre,
+                nombreError = if (nuevoNombre.isBlank()) "El nombre no puede estar vacío" else null
+            )
+        }
     }
 
-    // Actualiza el campo correo y limpia su error
-    fun onCorreoChange(valor: String) {
-        _estado.update { it.copy(correo = valor, errores = it.errores.copy(correo = null)) }
+    fun onEmailChanged(nuevoEmail: String) {
+        val emailValido = android.util.Patterns.EMAIL_ADDRESS.matcher(nuevoEmail).matches()
+        _uiState.update { current ->
+            current.copy(
+                email = nuevoEmail,
+                emailError = when {
+                    nuevoEmail.isBlank() -> "El correo es obligatorio"
+                    !emailValido -> "Ingresa un correo electrónico válido"
+                    else -> null
+                }
+            )
+        }
     }
 
-    // Actualiza el campo clave y limpia su error
-    fun onClaveChange(valor: String) {
-        _estado.update { it.copy(clave = valor, errores = it.errores.copy(clave = null)) }
+    fun onPasswordChanged(nuevaPassword: String) {
+        _uiState.update { current ->
+            current.copy(
+                password = nuevaPassword,
+                passwordError = when {
+                    nuevaPassword.length < 6 -> "La contraseña debe tener al menos 6 caracteres"
+                    else -> null
+                }
+            )
+        }
     }
 
-    // Actualiza el campo dirección y limpia su error
-    fun onDireccionChange(valor: String) {
-        _estado.update { it.copy(direccion = valor, errores = it.errores.copy(direccion = null)) }
-    }
-
-    // Actualiza el checkbox de aceptación
-    fun onAceptarTerminosChange(valor: Boolean) {
-        _estado.update { it.copy(aceptaTerminos = valor) }
-    }
-
-    // Validación global del formulario
     fun validarFormulario(): Boolean {
-        val estadoActual = _estado.value
-        val errores = UsuarioErrores(
-            nombre = if (estadoActual.nombre.isBlank()) "Campo obligatorio" else null,
-            correo = if (!estadoActual.correo.contains("@")) "Correo inválido" else null,
-            clave = if (estadoActual.clave.length < 6) "Debe tener al menos 6 caracteres" else null,
-            direccion = if (estadoActual.direccion.isBlank()) "Campo obligatorio" else null
-        )
+        val state = _uiState.value
+        val nombreErr = if (state.nombre.isBlank()) "El nombre es obligatorio" else null
+        val emailErr = if (!android.util.Patterns.EMAIL_ADDRESS.matcher(state.email).matches()) "Correo inválido" else null
+        val passErr = if (state.password.length < 6) "Mínimo 6 caracteres" else null
 
-        val hayErrores = listOfNotNull(
-            errores.nombre,
-            errores.correo,
-            errores.clave,
-            errores.direccion
-        ).isNotEmpty()
+        val tieneErrores = nombreErr != null || emailErr != null || passErr != null
 
-        _estado.update { it.copy(errores = errores) }
+        _uiState.update {
+            it.copy(
+                nombreError = nombreErr,
+                emailError = emailErr,
+                passwordError = passErr,
+                esValido = !tieneErrores
+            )
+        }
 
-        return !hayErrores
+        return !tieneErrores
     }
 }

@@ -1,117 +1,132 @@
 package com.example.martinichef_grupo14.ui.screens
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.martinichef_grupo14.viewmodel.UsuarioViewModel
 
 @Composable
 fun RegistroScreen(
-    navController: NavController,
-    viewModel: UsuarioViewModel
+    modifier: Modifier = Modifier,
+    navController: NavController? = null,
+    viewModel: UsuarioViewModel = viewModel()
 ) {
-    val estado by viewModel.estado.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Formulario de Registro",
+            text = "Registro de Usuario",
             style = MaterialTheme.typography.headlineMedium
         )
 
-        // Campo Nombre
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 1. Campo Nombre
         OutlinedTextField(
-            value = estado.nombre,
-            onValueChange = viewModel::onNombreChange,
-            label = { Text("Nombre") },
-            isError = estado.errores.nombre != null,
-            supportingText = {
-                estado.errores.nombre?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error)
+            value = uiState.nombre,
+            onValueChange = { viewModel.onNombreChanged(it) },
+            label = { Text("Nombre Completo") },
+            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+            trailingIcon = {
+                if (uiState.nombreError != null) {
+                    Icon(Icons.Default.Error, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                 }
             },
+            isError = uiState.nombreError != null,
+            supportingText = {
+                uiState.nombreError?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
+            },
+            singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Campo Correo
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 2. Campo Email
         OutlinedTextField(
-            value = estado.correo,
-            onValueChange = viewModel::onCorreoChange,
-            label = { Text("Correo electrónico") },
-            isError = estado.errores.correo != null,
-            supportingText = {
-                estado.errores.correo?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error)
+            value = uiState.email,
+            onValueChange = { viewModel.onEmailChanged(it) },
+            label = { Text("Correo Electrónico") },
+            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+            trailingIcon = {
+                if (uiState.emailError != null) {
+                    Icon(Icons.Default.Error, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                 }
             },
+            isError = uiState.emailError != null,
+            supportingText = {
+                uiState.emailError?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Campo Clave
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 3. Campo Contraseña
         OutlinedTextField(
-            value = estado.clave,
-            onValueChange = viewModel::onClaveChange,
+            value = uiState.password,
+            onValueChange = { viewModel.onPasswordChanged(it) },
             label = { Text("Contraseña") },
+            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+            trailingIcon = {
+                if (uiState.passwordError != null) {
+                    Icon(Icons.Default.Error, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                }
+            },
+            isError = uiState.passwordError != null,
+            supportingText = {
+                uiState.passwordError?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
+            },
             visualTransformation = PasswordVisualTransformation(),
-            isError = estado.errores.clave != null,
-            supportingText = {
-                estado.errores.clave?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error)
-                }
-            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Campo Dirección
-        OutlinedTextField(
-            value = estado.direccion,
-            onValueChange = viewModel::onDireccionChange,
-            label = { Text("Dirección") },
-            isError = estado.errores.direccion != null,
-            supportingText = {
-                estado.errores.direccion?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error)
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Spacer(modifier = Modifier.height(24.dp))
 
-        // Checkbox: Aceptar términos
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = estado.aceptaTerminos,
-                onCheckedChange = viewModel::onAceptarTerminosChange
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Acepto los términos y condiciones")
-        }
-
-        // Botón: Enviar
+        // Botón Registrarse
         Button(
             onClick = {
                 if (viewModel.validarFormulario()) {
-                    navController.navigate("resumen")
+                    navController?.navigate("resumen")
                 }
             },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+        ) {
+            Text("Registrar y Continuar")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedButton(
+            onClick = { navController?.popBackStack() },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "Registrar")
+            Text("Volver")
         }
     }
 }

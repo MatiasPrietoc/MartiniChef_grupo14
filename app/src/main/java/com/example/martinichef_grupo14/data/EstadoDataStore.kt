@@ -7,24 +7,21 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-// Instancia de DataStore asociada al contexto de la aplicación
-val Context.dataStore by preferencesDataStore(name = "preferencias_usuario")
+private val Context.dataStore by preferencesDataStore(name = "estado_preferences")
 
 class EstadoDataStore(private val context: Context) {
 
-    private val ESTADO_ACTIVADO = booleanPreferencesKey(name = "modo_activado")
-
-    // Guardar el estado
-    suspend fun guardarEstado(valor: Boolean) {
-        context.dataStore.edit { preferencias ->
-            preferencias[ESTADO_ACTIVADO] = valor
-        }
+    companion object {
+        val ESTADO_KEY = booleanPreferencesKey("estado_activo")
     }
 
-    // Obtener el estado como Flow reactivo
-    fun obtenerEstado(): Flow<Boolean?> {
-        return context.dataStore.data.map { preferencias ->
-            preferencias[ESTADO_ACTIVADO]
+    val estadoFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[ESTADO_KEY] ?: false
+    }
+
+    suspend fun guardarEstado(activo: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[ESTADO_KEY] = activo
         }
     }
 }
