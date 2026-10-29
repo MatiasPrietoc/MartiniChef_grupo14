@@ -13,6 +13,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.martinichef_grupo14.viewmodel.EstadoViewModel
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import com.example.martinichef_grupo14.ui.utils.obtenerWindowSizeClass
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun PantallaPrincipal(
@@ -22,6 +26,9 @@ fun PantallaPrincipal(
 ) {
     val estado = viewModel.activo.collectAsState()
     val mostrarMensaje = viewModel.mostrarMensaje.collectAsState()
+
+    val windowSizeClass = obtenerWindowSizeClass()
+    val tipoPantalla = windowSizeClass.widthSizeClass
 
     if (estado.value == null) {
         Box(
@@ -41,10 +48,11 @@ fun PantallaPrincipal(
         val textoBoton by remember(estaActivo) {
             derivedStateOf { if (estaActivo) "Desactivar" else "Activar" }
         }
-
+        val contenido: @Composable () -> Unit = {
         Column(
             modifier = modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -109,6 +117,25 @@ fun PantallaPrincipal(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Ir a Ajustes")
+            }
+        }
+        }
+
+        when (tipoPantalla) {
+            WindowWidthSizeClass.Compact -> {
+                HomeScreenCompacta(contenido = contenido)
+            }
+
+            WindowWidthSizeClass.Medium -> {
+                HomeScreenMediana(contenido = contenido)
+            }
+
+            WindowWidthSizeClass.Expanded -> {
+                HomeScreenExpandida(contenido = contenido)
+            }
+
+            else -> {
+                HomeScreenCompacta(contenido = contenido)
             }
         }
     }

@@ -62,7 +62,17 @@ fun ResumenScreen(
                 )
 
                 HorizontalDivider()
+                Text(
+                    text = "Dirección:",
+                    style = MaterialTheme.typography.labelLarge
+                )
 
+                Text(
+                    text = uiState.direccion.ifBlank { "No especificada" },
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                HorizontalDivider()
                 Text(
                     text = "Estado del registro:",
                     style = MaterialTheme.typography.labelLarge

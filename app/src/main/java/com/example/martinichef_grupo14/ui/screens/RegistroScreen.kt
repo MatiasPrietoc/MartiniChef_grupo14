@@ -17,6 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.martinichef_grupo14.viewmodel.UsuarioViewModel
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.Home
 
 @Composable
 fun RegistroScreen(
@@ -29,6 +32,7 @@ fun RegistroScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -105,7 +109,61 @@ fun RegistroScreen(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+        OutlinedTextField(
+            value = uiState.direccion,
+            onValueChange = { viewModel.onDireccionChanged(it) },
+            label = { Text("Dirección") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = null
+                )
+            },
+            isError = uiState.direccionError != null,
+            supportingText = {
+                uiState.direccionError?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error)
+                }
+            },
+            trailingIcon = {
+                if (uiState.direccionError != null) {
+                    Icon(
+                        imageVector = Icons.Default.Error,
+                        contentDescription = "Error en la dirección",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = uiState.aceptaTerminos,
+                onCheckedChange = { viewModel.onTerminosChanged(it) }
+            )
+            Text(
+                text = "Acepto los términos y condiciones",
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        uiState.terminosError?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
         // Botón Registrarse
         Button(
             onClick = {
