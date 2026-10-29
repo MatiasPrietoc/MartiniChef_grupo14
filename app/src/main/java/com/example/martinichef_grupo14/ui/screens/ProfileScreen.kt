@@ -19,9 +19,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.martinichef_grupo14.ui.components.ImagenInteligente
 import com.example.martinichef_grupo14.viewmodel.PerfilViewModel
 import java.io.File
+import androidx.navigation.NavController
 
 @Composable
 fun ProfileScreen(
+    navController: NavController,
     modifier: Modifier = Modifier,
     viewModel: PerfilViewModel = viewModel()
 ) {
@@ -106,6 +108,20 @@ fun ProfileScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Tomar Foto")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedButton(
+            onClick = {
+                navController.popBackStack(
+                    route = "pantalla_principal",
+                    inclusive = false
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Volver al Inicio")
         }
     }
 }

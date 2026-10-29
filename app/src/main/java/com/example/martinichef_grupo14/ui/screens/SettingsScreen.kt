@@ -25,13 +25,22 @@ fun SettingsScreen(
         Text(text = "Pantalla de Configuración (Settings)")
         Spacer(modifier = Modifier.height(24.dp))
         Button(
-            onClick = { viewModel.navigateTo(Screen.Home) }
+            onClick = {
+                navController.popBackStack(
+                    route = "pantalla_principal",
+                    inclusive = false
+                )
+            }
         ) {
             Text(text = "Volver al Inicio")
         }
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = { viewModel.navigateTo(Screen.Profile) }
+            onClick = {
+                navController.navigate("perfil") {
+                    launchSingleTop = true
+                }
+            }
         ) {
             Text(text = "Ir a Perfil")
         }
