@@ -12,10 +12,10 @@ import com.example.martinichef_grupo14.viewmodel.*
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    // Instancias de los ViewModels según el tipo requerido por cada pantalla
     val estadoViewModel: EstadoViewModel = viewModel()
     val mainViewModel: MainViewModel = viewModel()
     val usuarioViewModel: UsuarioViewModel = viewModel()
+    val recetasViewModel: RecetasViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -27,25 +27,50 @@ fun AppNavigation() {
                 viewModel = estadoViewModel
             )
         }
+
         composable("registro") {
             RegistroScreen(
                 navController = navController,
                 viewModel = usuarioViewModel
             )
         }
+
         composable("perfil") {
             ProfileScreen(navController = navController)
         }
+
         composable("resumen") {
             ResumenScreen(
                 navController = navController,
                 viewModel = usuarioViewModel
             )
         }
+
         composable("settings") {
             SettingsScreen(
                 navController = navController,
                 viewModel = mainViewModel
+            )
+        }
+
+        composable("recetas") {
+            RecetasScreen(
+                viewModel = recetasViewModel,
+                onRecetaClick = {
+                    navController.navigate("detalle_receta")
+                },
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("detalle_receta") {
+            DetalleRecetaScreen(
+                viewModel = recetasViewModel,
+                onVolver = {
+                    navController.popBackStack()
+                }
             )
         }
     }
