@@ -15,6 +15,7 @@ fun AppNavigation() {
     val estadoViewModel: EstadoViewModel = viewModel()
     val mainViewModel: MainViewModel = viewModel()
     val usuarioViewModel: UsuarioViewModel = viewModel()
+    val recetasViewModel: RecetasViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -54,6 +55,19 @@ fun AppNavigation() {
 
         composable("recetas") {
             RecetasScreen(
+                viewModel = recetasViewModel,
+                onRecetaClick = {
+                    navController.navigate("detalle_receta")
+                },
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("detalle_receta") {
+            DetalleRecetaScreen(
+                viewModel = recetasViewModel,
                 onVolver = {
                     navController.popBackStack()
                 }
