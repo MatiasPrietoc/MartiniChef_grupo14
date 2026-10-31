@@ -1,11 +1,15 @@
 package com.example.martinichef_grupo14.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.martinichef_grupo14.data.FavoritosDataStore
 import com.example.martinichef_grupo14.model.Receta
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 data class RecetasUiState(
     val recetas: List<Receta> = emptyList(),
@@ -19,13 +23,24 @@ data class RecetasUiState(
             }
 
             return recetas.filter { receta ->
-                receta.nombre.contains(textoBusqueda, ignoreCase = true) ||
-                        receta.categoria.contains(textoBusqueda, ignoreCase = true)
+                receta.nombre.contains(
+                    textoBusqueda,
+                    ignoreCase = true
+                ) ||
+                        receta.categoria.contains(
+                            textoBusqueda,
+                            ignoreCase = true
+                        )
             }
         }
 }
 
-class RecetasViewModel : ViewModel() {
+class RecetasViewModel(
+    application: Application
+) : AndroidViewModel(application) {
+
+    private val favoritosDataStore =
+        FavoritosDataStore(application)
 
     private val recetasIniciales = listOf(
         Receta(
@@ -114,7 +129,35 @@ class RecetasViewModel : ViewModel() {
         RecetasUiState(recetas = recetasIniciales)
     )
 
-    val uiState: StateFlow<RecetasUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<RecetasUiState> =
+        _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            favoritosDataStore.favoritosFlow.collect { idsFavoritos ->
+                _uiState.update { estadoActual ->
+                    val recetasActualizadas =
+                        estadoActual.recetas.map { receta ->
+                            receta.copy(
+                                esFavorita = receta.id in idsFavoritos
+                            )
+                        }
+
+                    val seleccionActualizada =
+                        estadoActual.recetaSeleccionada?.let { seleccionada ->
+                            recetasActualizadas.find { receta ->
+                                receta.id == seleccionada.id
+                            }
+                        }
+
+                    estadoActual.copy(
+                        recetas = recetasActualizadas,
+                        recetaSeleccionada = seleccionActualizada
+                    )
+                }
+            }
+        }
+    }
 
     fun actualizarBusqueda(nuevoTexto: String) {
         _uiState.update { estadoActual ->
@@ -125,7 +168,10 @@ class RecetasViewModel : ViewModel() {
     fun seleccionarReceta(id: Int) {
         _uiState.update { estadoActual ->
             estadoActual.copy(
-                recetaSeleccionada = estadoActual.recetas.find { it.id == id }
+                recetaSeleccionada =
+                    estadoActual.recetas.find { receta ->
+                        receta.id == id
+                    }
             )
         }
     }
@@ -138,22 +184,38 @@ class RecetasViewModel : ViewModel() {
 
     fun alternarFavorito(id: Int) {
         _uiState.update { estadoActual ->
-            val nuevasRecetas = estadoActual.recetas.map { receta ->
-                if (receta.id == id) {
-                    receta.copy(esFavorita = !receta.esFavorita)
-                } else {
-                    receta
+            val nuevasRecetas =
+                estadoActual.recetas.map { receta ->
+                    if (receta.id == id) {
+                        receta.copy(
+                            esFavorita = !receta.esFavorita
+                        )
+                    } else {
+                        receta
+                    }
                 }
-            }
 
-            val nuevaSeleccion = estadoActual.recetaSeleccionada?.let { seleccionada ->
-                nuevasRecetas.find { it.id == seleccionada.id }
-            }
+            val nuevaSeleccion =
+                estadoActual.recetaSeleccionada?.let { seleccionada ->
+                    nuevasRecetas.find { receta ->
+                        receta.id == seleccionada.id
+                    }
+                }
 
             estadoActual.copy(
                 recetas = nuevasRecetas,
                 recetaSeleccionada = nuevaSeleccion
             )
+        }
+
+        val idsFavoritos =
+            _uiState.value.recetas
+                .filter { receta -> receta.esFavorita }
+                .map { receta -> receta.id }
+                .toSet()
+
+        viewModelScope.launch {
+            favoritosDataStore.guardarFavoritos(idsFavoritos)
         }
     }
 }
