@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.martinichef_grupo14.viewmodel.UsuarioViewModel
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun ResumenScreen(
@@ -22,6 +24,7 @@ fun ResumenScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -88,12 +91,26 @@ fun ResumenScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
-            onClick = { navController?.navigate("pantalla_principal") },
+            onClick = {
+                navController?.let { controller ->
+                    val volvioAlInicio = controller.popBackStack(
+                        route = "pantalla_principal",
+                        inclusive = false
+                    )
+
+                    if (!volvioAlInicio) {
+                        controller.popBackStack(
+                            route = "login",
+                            inclusive = false
+                        )
+                    }
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text("Volver al Inicio")
+            Text("Continuar")
         }
     }
 }

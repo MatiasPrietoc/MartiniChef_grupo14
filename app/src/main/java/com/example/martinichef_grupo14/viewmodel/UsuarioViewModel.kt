@@ -1,10 +1,16 @@
 package com.example.martinichef_grupo14.viewmodel
 
-import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.martinichef_grupo14.data.UsuarioDataStore
+import kotlinx.coroutines.launch
+import java.io.IOException
+import kotlinx.coroutines.flow.first
 
 data class RegistroUiState(
     val nombre: String = "",
@@ -17,13 +23,50 @@ data class RegistroUiState(
     val direccionError: String? = null,
     val aceptaTerminos: Boolean = false,
     val terminosError: String? = null,
-    val esValido: Boolean = false
+    val esValido: Boolean = false,
+    val guardando: Boolean = false,
+    val errorGuardado: String? = null,
+    val cargandoPerfil: Boolean = true
 )
 
-class UsuarioViewModel : ViewModel() {
+class UsuarioViewModel(
+    application: Application
+) : AndroidViewModel(application) {
+
+    private val usuarioDataStore = UsuarioDataStore(application)
 
     private val _uiState = MutableStateFlow(RegistroUiState())
     val uiState: StateFlow<RegistroUiState> = _uiState.asStateFlow()
+    init {
+        viewModelScope.launch {
+            try {
+                val perfil = usuarioDataStore.perfilFlow.first()
+
+                if (perfil != null) {
+                    _uiState.update {
+                        it.copy(
+                            nombre = perfil.nombre,
+                            email = perfil.email,
+                            direccion = perfil.direccion
+                        )
+                    }
+                }
+
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(
+                        errorGuardado =
+                            "No se pudo recuperar el perfil guardado."
+                    )
+                }
+
+            } finally {
+                _uiState.update {
+                    it.copy(cargandoPerfil = false)
+                }
+            }
+        }
+    }
 
     fun onNombreChanged(nuevoNombre: String) {
         _uiState.update { current ->
@@ -32,6 +75,37 @@ class UsuarioViewModel : ViewModel() {
                 nombre = nuevoNombre,
                 nombreError = if (nuevoNombre.isBlank()) "El nombre no puede estar vacío" else null
             )
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            try {
+                val perfil = usuarioDataStore.perfilFlow.first()
+
+                if (perfil != null) {
+                    _uiState.update {
+                        it.copy(
+                            nombre = perfil.nombre,
+                            email = perfil.email,
+                            direccion = perfil.direccion
+                        )
+                    }
+                }
+
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(
+                        errorGuardado =
+                            "No se pudo recuperar el perfil guardado."
+                    )
+                }
+
+            } finally {
+                _uiState.update {
+                    it.copy(cargandoPerfil = false)
+                }
+            }
         }
     }
 
@@ -84,6 +158,46 @@ class UsuarioViewModel : ViewModel() {
                 else null,
                 esValido = false
             )
+        }
+    }
+
+    fun guardarRegistro(onGuardado: () -> Unit) {
+        if (_uiState.value.guardando) return
+
+        if (!validarFormulario()) return
+
+        val datos = _uiState.value
+
+        _uiState.update {
+            it.copy(
+                guardando = true,
+                errorGuardado = null
+            )
+        }
+
+        viewModelScope.launch {
+            try {
+                usuarioDataStore.guardarPerfil(
+                    nombre = datos.nombre,
+                    email = datos.email,
+                    direccion = datos.direccion
+                )
+
+                onGuardado()
+
+            } catch (e: IOException) {
+                _uiState.update {
+                    it.copy(
+                        errorGuardado =
+                            "No se pudo guardar el perfil. Intenta nuevamente."
+                    )
+                }
+
+            } finally {
+                _uiState.update {
+                    it.copy(guardando = false)
+                }
+            }
         }
     }
     fun validarFormulario(): Boolean {

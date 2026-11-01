@@ -20,6 +20,7 @@ import com.example.martinichef_grupo14.ui.components.ImagenInteligente
 import com.example.martinichef_grupo14.viewmodel.PerfilViewModel
 import java.io.File
 import androidx.navigation.NavController
+import androidx.compose.runtime.saveable.rememberSaveable
 
 @Composable
 fun ProfileScreen(
@@ -30,7 +31,9 @@ fun ProfileScreen(
     val context = LocalContext.current
     val imagenUri by viewModel.imagenUri.collectAsState()
 
-    var tempCamaraUri by remember { mutableStateOf<Uri?>(null) }
+    var tempCamaraUriTexto by rememberSaveable {
+        mutableStateOf<String?>(null)
+    }
 
     // Función auxiliar para generar la URI temporal
     fun crearTempUri(): Uri {
@@ -53,9 +56,13 @@ fun ProfileScreen(
     val camaraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { exito: Boolean ->
-        if (exito && tempCamaraUri != null) {
-            viewModel.setImagenUri(tempCamaraUri)
+        val uri = tempCamaraUriTexto?.let { Uri.parse(it) }
+
+        if (exito && uri != null) {
+            viewModel.setImagenUri(uri)
         }
+
+        tempCamaraUriTexto = null
     }
 
     // Launcher para solicitar el Permiso de Cámara
@@ -64,7 +71,7 @@ fun ProfileScreen(
     ) { concedido: Boolean ->
         if (concedido) {
             val uri = crearTempUri()
-            tempCamaraUri = uri
+            tempCamaraUriTexto = uri.toString()
             camaraLauncher.launch(uri)
         } else {
             Toast.makeText(context, "Se requiere permiso de cámara", Toast.LENGTH_SHORT).show()
@@ -99,7 +106,7 @@ fun ProfileScreen(
                 )
                 if (estadoPermiso == PackageManager.PERMISSION_GRANTED) {
                     val uri = crearTempUri()
-                    tempCamaraUri = uri
+                    tempCamaraUriTexto = uri.toString()
                     camaraLauncher.launch(uri)
                 } else {
                     permisoCamaraLauncher.launch(Manifest.permission.CAMERA)

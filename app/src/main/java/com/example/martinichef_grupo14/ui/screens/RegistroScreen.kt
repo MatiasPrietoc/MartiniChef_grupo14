@@ -28,6 +28,16 @@ fun RegistroScreen(
     viewModel: UsuarioViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    if (uiState.cargandoPerfil) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+
+        return
+    }
 
     Column(
         modifier = modifier
@@ -165,17 +175,32 @@ fun RegistroScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
         // Botón Registrarse
+        uiState.errorGuardado?.let { mensaje ->
+            Text(
+                text = mensaje,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
         Button(
             onClick = {
-                if (viewModel.validarFormulario()) {
+                viewModel.guardarRegistro {
                     navController?.navigate("resumen")
                 }
             },
+            enabled = !uiState.guardando,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
         ) {
-            Text("Registrar y Continuar")
+            Text(
+                text = if (uiState.guardando)
+                    "Guardando..."
+                else
+                    "Registrar y Continuar"
+            )
         }
 
         Spacer(modifier = Modifier.height(12.dp))

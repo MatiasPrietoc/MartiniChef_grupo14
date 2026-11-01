@@ -26,6 +26,8 @@ fun PantallaPrincipal(
 ) {
     val estado = viewModel.activo.collectAsState()
     val mostrarMensaje = viewModel.mostrarMensaje.collectAsState()
+    val guardando = viewModel.guardando.collectAsState()
+    val error = viewModel.error.collectAsState()
 
     val windowSizeClass = obtenerWindowSizeClass()
     val tipoPantalla = windowSizeClass.widthSizeClass
@@ -46,7 +48,12 @@ fun PantallaPrincipal(
         )
 
         val textoBoton by remember(estaActivo) {
-            derivedStateOf { if (estaActivo) "Desactivar" else "Activar" }
+            derivedStateOf {
+                if (estaActivo)
+                    "Ocultar consejos de cocina"
+                else
+                    "Mostrar consejos de cocina"
+            }
         }
         val contenido: @Composable () -> Unit = {
         Column(
@@ -60,6 +67,7 @@ fun PantallaPrincipal(
             // 1. Botón de Activar / Desactivar
             Button(
                 onClick = { viewModel.alternarEstado() },
+                enabled = !guardando.value,
                 colors = ButtonDefaults.buttonColors(containerColor = colorAnimado),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -68,17 +76,54 @@ fun PantallaPrincipal(
                 Text(text = textoBoton, style = MaterialTheme.typography.titleMedium)
             }
 
+            AnimatedVisibility(visible = estaActivo) {
+                Column {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Antes de comenzar",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Text("• Lee todos los pasos de la receta.")
+                            Text("• Prepara y mide los ingredientes.")
+                            Text("• Reúne los utensilios necesarios.")
+                            Text("• Mantén ordenado tu espacio de trabajo.")
+                        }
+                    }
+                }
+            }
+
             AnimatedVisibility(visible = mostrarMensaje.value) {
+                Column {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "¡Estado guardado exitosamente!",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            error.value?.let { mensaje ->
                 Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
-                    text = "¡Estado guardado exitosamente!",
-                    color = Color(0xFF4CAF50),
+                    text = mensaje,
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
 
             Spacer(modifier = Modifier.height(28.dp))
-            Text(text = "Módulos de la aplicación", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Explora MartiniChef", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(12.dp))
 
             // 2. Botón ir a Registro

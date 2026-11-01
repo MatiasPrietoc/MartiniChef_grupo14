@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
+import java.io.IOException
 
 class EstadoViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -18,6 +21,11 @@ class EstadoViewModel(application: Application) : AndroidViewModel(application) 
 
     private val _mostrarMensaje = MutableStateFlow(false)
     val mostrarMensaje: StateFlow<Boolean> = _mostrarMensaje.asStateFlow()
+    private val _guardando = MutableStateFlow(false)
+    val guardando: StateFlow<Boolean> = _guardando.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -28,12 +36,33 @@ class EstadoViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun alternarEstado() {
-        val nuevoEstado = !(_activo.value ?: false)
-        _activo.value = nuevoEstado
-        _mostrarMensaje.value = true
+        val estadoActual = _activo.value ?: return
+
+        if (_guardando.value) return
+
+        val nuevoEstado = !estadoActual
+
+        _guardando.value = true
+        _mostrarMensaje.value = false
+        _error.value = null
 
         viewModelScope.launch {
-            dataStore.guardarEstado(nuevoEstado)
+            try {
+                dataStore.guardarEstado(nuevoEstado)
+
+                _mostrarMensaje.value = true
+                delay(1500)
+                _mostrarMensaje.value = false
+
+            } catch (e: CancellationException) {
+                throw e
+
+            } catch (e: IOException) {
+                _error.value = "No se pudo guardar el estado"
+
+            } finally {
+                _guardando.value = false
+            }
         }
     }
 }

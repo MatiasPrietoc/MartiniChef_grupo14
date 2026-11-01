@@ -1,52 +1,166 @@
 package com.example.martinichef_grupo14.navigation
 
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.martinichef_grupo14.ui.components.BarraNavegacion
 import com.example.martinichef_grupo14.ui.screens.*
 import com.example.martinichef_grupo14.viewmodel.*
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.martinichef_grupo14.repository.RecetasRepository
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    // Instancias de los ViewModels según el tipo requerido por cada pantalla
     val estadoViewModel: EstadoViewModel = viewModel()
-    val mainViewModel: MainViewModel = viewModel()
     val usuarioViewModel: UsuarioViewModel = viewModel()
+    val loginViewModel: LoginViewModel = viewModel()
 
-    NavHost(
-        navController = navController,
-        startDestination = "pantalla_principal"
-    ) {
-        composable("pantalla_principal") {
-            PantallaPrincipal(
-                navController = navController,
-                viewModel = estadoViewModel
-            )
+    val loginState by loginViewModel.uiState.collectAsState()
+
+    val entradaActual by navController.currentBackStackEntryAsState()
+    val rutaActual = entradaActual?.destination?.route
+
+    val mostrarBarra = rutaActual in listOf(
+        "pantalla_principal",
+        "recetas",
+        "perfil",
+        "settings"
+    )
+
+    Scaffold(
+        bottomBar = {
+            if (mostrarBarra) {
+                BarraNavegacion(
+                    rutaActual = rutaActual,
+                    onNavegar = { destino ->
+                        if (rutaActual != destino) {
+                            navController.navigate(destino) {
+                                popUpTo("pantalla_principal") {
+                                    saveState = true
+                                }
+
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    }
+                )
+            }
         }
-        composable("registro") {
-            RegistroScreen(
-                navController = navController,
-                viewModel = usuarioViewModel
-            )
-        }
-        composable("perfil") {
-            ProfileScreen(navController = navController)
-        }
-        composable("resumen") {
-            ResumenScreen(
-                navController = navController,
-                viewModel = usuarioViewModel
-            )
-        }
-        composable("settings") {
-            SettingsScreen(
-                navController = navController,
-                viewModel = mainViewModel
-            )
+    ) { espacioInterior ->
+
+        NavHost(
+            navController = navController,
+            startDestination = "login",
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(espacioInterior)
+                .consumeWindowInsets(espacioInterior)
+        ) {
+            composable("login") {
+                LoginScreen(
+                    email = loginState.email,
+                    password = loginState.password,
+                    error = loginState.error,
+                    cargando = loginState.cargando,
+                    onEmailChanged = {
+                        loginViewModel.onEmailChanged(it)
+                    },
+                    onPasswordChanged = {
+                        loginViewModel.onPasswordChanged(it)
+                    },
+                    onIngresar = {
+                        loginViewModel.ingresar {
+                            navController.navigate("pantalla_principal") {
+                                popUpTo("login") {
+                                    inclusive = true
+                                }
+
+                                launchSingleTop = true
+                            }
+                        }
+                    },
+                    onRegistro = {
+                        navController.navigate("registro")
+                    }
+                )
+            }
+
+            composable("pantalla_principal") {
+                PantallaPrincipal(
+                    navController = navController,
+                    viewModel = estadoViewModel
+                )
+            }
+
+            composable("registro") {
+                RegistroScreen(
+                    navController = navController,
+                    viewModel = usuarioViewModel
+                )
+            }
+            composable("recetas") {
+                RecetasScreen(
+                    recetas = RecetasRepository.obtenerRecetas(),
+                    onVerReceta = { id ->
+                        navController.navigate("detalle_receta/$id")
+                    }
+                )
+            }
+
+            composable(
+                route = "detalle_receta/{id}",
+                arguments = listOf(
+                    navArgument("id") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { entrada ->
+                val id = entrada.arguments?.getInt("id")
+
+                val receta = id?.let {
+                    RecetasRepository.buscarPorId(it)
+                }
+
+                DetalleRecetaScreen(
+                    receta = receta,
+                    onVolver = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable("perfil") {
+                ProfileScreen(
+                    navController = navController
+                )
+            }
+
+            composable("resumen") {
+                ResumenScreen(
+                    navController = navController,
+                    viewModel = usuarioViewModel
+                )
+            }
+
+            composable("settings") {
+                SettingsScreen(
+                    navController = navController
+                )
+            }
         }
     }
 }

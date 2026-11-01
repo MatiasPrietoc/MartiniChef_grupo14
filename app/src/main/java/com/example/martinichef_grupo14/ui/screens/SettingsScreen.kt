@@ -7,13 +7,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.martinichef_grupo14.navigation.Screen
-import com.example.martinichef_grupo14.viewmodel.MainViewModel
+
 
 @Composable
 fun SettingsScreen(
-    navController: NavController,
-    viewModel: MainViewModel
+    navController: NavController
 ) {
     Column(
         modifier = Modifier
