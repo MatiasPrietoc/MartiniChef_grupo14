@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.martinichef_grupo14.model.Receta
+import com.example.martinichef_grupo14.ui.components.FotoReceta
 
 @Composable
 fun RecetasScreen(
@@ -44,6 +45,7 @@ fun RecetasScreen(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    FotoReceta(receta = receta)
                     Text(
                         text = receta.titulo,
                         style = MaterialTheme.typography.titleLarge

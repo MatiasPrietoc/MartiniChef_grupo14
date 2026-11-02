@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.martinichef_grupo14.model.Receta
+import com.example.martinichef_grupo14.ui.components.FotoReceta
 
 @Composable
 fun DetalleRecetaScreen(
@@ -37,6 +38,12 @@ fun DetalleRecetaScreen(
             }
         } else {
             item {
+                FotoReceta(
+                    receta = receta
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
                     text = receta.titulo,
                     style = MaterialTheme.typography.headlineMedium
@@ -44,7 +51,10 @@ fun DetalleRecetaScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(text = receta.descripcion)
+                Text(
+                    text = receta.descripcion,
+                    style = MaterialTheme.typography.bodyLarge
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -66,7 +76,10 @@ fun DetalleRecetaScreen(
             }
 
             items(receta.ingredientes) { ingrediente ->
-                Text(text = "• $ingrediente")
+                Text(
+                    text = "• $ingrediente",
+                    style = MaterialTheme.typography.bodyLarge
+                )
             }
 
             item {
@@ -81,7 +94,24 @@ fun DetalleRecetaScreen(
             }
 
             itemsIndexed(receta.pasos) { indice, paso ->
-                Text(text = "${indice + 1}. $paso")
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "${indice + 1}. $paso",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+
+            item {
+                OutlinedButton(
+                    onClick = onVolver,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Volver al catálogo")
+                }
             }
         }
     }

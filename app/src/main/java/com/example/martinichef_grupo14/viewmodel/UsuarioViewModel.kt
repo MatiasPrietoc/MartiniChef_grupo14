@@ -1,16 +1,17 @@
 package com.example.martinichef_grupo14.viewmodel
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import android.app.Application
+import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.martinichef_grupo14.data.UsuarioDataStore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
-import kotlinx.coroutines.flow.first
 
 data class RegistroUiState(
     val nombre: String = "",
@@ -37,6 +38,8 @@ class UsuarioViewModel(
 
     private val _uiState = MutableStateFlow(RegistroUiState())
     val uiState: StateFlow<RegistroUiState> = _uiState.asStateFlow()
+
+    // Recupera el perfil guardado una sola vez al crear el ViewModel.
     init {
         viewModelScope.launch {
             try {
@@ -69,93 +72,78 @@ class UsuarioViewModel(
     }
 
     fun onNombreChanged(nuevoNombre: String) {
-        _uiState.update { current ->
-            current.copy(
-                esValido = false,
+        _uiState.update {
+            it.copy(
                 nombre = nuevoNombre,
-                nombreError = if (nuevoNombre.isBlank()) "El nombre no puede estar vacío" else null
+                nombreError = if (nuevoNombre.isBlank()) {
+                    "El nombre no puede estar vacío"
+                } else {
+                    null
+                },
+                esValido = false
             )
         }
     }
 
-    init {
-        viewModelScope.launch {
-            try {
-                val perfil = usuarioDataStore.perfilFlow.first()
-
-                if (perfil != null) {
-                    _uiState.update {
-                        it.copy(
-                            nombre = perfil.nombre,
-                            email = perfil.email,
-                            direccion = perfil.direccion
-                        )
-                    }
-                }
-
-            } catch (e: IOException) {
-                _uiState.update {
-                    it.copy(
-                        errorGuardado =
-                            "No se pudo recuperar el perfil guardado."
-                    )
-                }
-
-            } finally {
-                _uiState.update {
-                    it.copy(cargandoPerfil = false)
-                }
-            }
-        }
-    }
-
     fun onEmailChanged(nuevoEmail: String) {
-        val emailValido = android.util.Patterns.EMAIL_ADDRESS.matcher(nuevoEmail).matches()
-        _uiState.update { current ->
-            current.copy(
-                esValido = false,
+        val emailValido = Patterns.EMAIL_ADDRESS
+            .matcher(nuevoEmail)
+            .matches()
+
+        _uiState.update {
+            it.copy(
                 email = nuevoEmail,
                 emailError = when {
-                    nuevoEmail.isBlank() -> "El correo es obligatorio"
-                    !emailValido -> "Ingresa un correo electrónico válido"
+                    nuevoEmail.isBlank() ->
+                        "El correo es obligatorio"
+
+                    !emailValido ->
+                        "Ingresa un correo electrónico válido"
+
                     else -> null
-                }
+                },
+                esValido = false
             )
         }
     }
 
     fun onPasswordChanged(nuevaPassword: String) {
-        _uiState.update { current ->
-            current.copy(
-                esValido = false,
+        _uiState.update {
+            it.copy(
                 password = nuevaPassword,
-                passwordError = when {
-                    nuevaPassword.length < 6 -> "La contraseña debe tener al menos 6 caracteres"
-                    else -> null
-                }
+                passwordError = if (nuevaPassword.length < 6) {
+                    "La contraseña debe tener al menos 6 caracteres"
+                } else {
+                    null
+                },
+                esValido = false
             )
         }
     }
 
     fun onDireccionChanged(nuevaDireccion: String) {
-        _uiState.update { current ->
-            current.copy(
+        _uiState.update {
+            it.copy(
                 direccion = nuevaDireccion,
-                direccionError = if (nuevaDireccion.isBlank())
+                direccionError = if (nuevaDireccion.isBlank()) {
                     "La dirección es obligatoria"
-                else null,
+                } else {
+                    null
+                },
                 esValido = false
             )
         }
     }
 
     fun onTerminosChanged(acepta: Boolean) {
-        _uiState.update { current ->
-            current.copy(
+        _uiState.update {
+            it.copy(
                 aceptaTerminos = acepta,
-                terminosError = if (!acepta)
+                terminosError = if (!acepta) {
                     "Debes aceptar los términos"
-                else null,
+                } else {
+                    null
+                },
                 esValido = false
             )
         }
@@ -200,29 +188,41 @@ class UsuarioViewModel(
             }
         }
     }
+
     fun validarFormulario(): Boolean {
         val state = _uiState.value
 
-        val nombreErr =
-            if (state.nombre.isBlank()) "El nombre es obligatorio"
-            else null
+        val nombreErr = if (state.nombre.isBlank()) {
+            "El nombre es obligatorio"
+        } else {
+            null
+        }
 
-        val emailErr =
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(state.email).matches())
-                "Correo inválido"
-            else null
+        val emailErr = if (
+            !Patterns.EMAIL_ADDRESS.matcher(state.email).matches()
+        ) {
+            "Correo inválido"
+        } else {
+            null
+        }
 
-        val passErr =
-            if (state.password.length < 6) "Mínimo 6 caracteres"
-            else null
+        val passErr = if (state.password.length < 6) {
+            "Mínimo 6 caracteres"
+        } else {
+            null
+        }
 
-        val direccionErr =
-            if (state.direccion.isBlank()) "La dirección es obligatoria"
-            else null
+        val direccionErr = if (state.direccion.isBlank()) {
+            "La dirección es obligatoria"
+        } else {
+            null
+        }
 
-        val terminosErr =
-            if (!state.aceptaTerminos) "Debes aceptar los términos"
-            else null
+        val terminosErr = if (!state.aceptaTerminos) {
+            "Debes aceptar los términos"
+        } else {
+            null
+        }
 
         val tieneErrores =
             nombreErr != null ||
@@ -244,5 +244,4 @@ class UsuarioViewModel(
 
         return !tieneErrores
     }
-
 }

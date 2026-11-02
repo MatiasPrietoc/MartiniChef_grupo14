@@ -10,6 +10,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.School
 
 @Composable
 fun BarraNavegacion(
@@ -39,6 +40,17 @@ fun BarraNavegacion(
                 )
             },
             label = { Text("Recetas") }
+        )
+        NavigationBarItem(
+            selected = rutaActual == "aprender",
+            onClick = { onNavegar("aprender") },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.School,
+                    contentDescription = null
+                )
+            },
+            label = { Text("Aprender") }
         )
 
         NavigationBarItem(
