@@ -13,58 +13,83 @@ import com.example.martinichef_grupo14.ui.components.FotoReceta
 @Composable
 fun RecetasScreen(
     recetas: List<Receta>,
-    onVerReceta: (Int) -> Unit
+    onVerReceta: (Int) -> Unit,
+    onVolverInicio: () -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    Column(
+        modifier = Modifier.fillMaxSize()
     ) {
-        item {
-            Text(
-                text = "Recetas de MartiniChef",
-                style = MaterialTheme.typography.headlineMedium
+        TextButton(
+            onClick = onVolverInicio,
+            modifier = Modifier.padding(
+                horizontal = 16.dp,
+                vertical = 8.dp
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Catálogo de demostración",
-                style = MaterialTheme.typography.bodyLarge
-            )
+        ) {
+            Text("← Volver al inicio")
         }
 
-        items(
-            items = recetas,
-            key = { receta -> receta.id }
-        ) { receta ->
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+        HorizontalDivider()
+
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentPadding = PaddingValues(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Text(
+                    text = "Recetas de MartiniChef",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Encuentra tu próxima preparación.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            items(
+                items = recetas,
+                key = { it.id }
+            ) { receta ->
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    FotoReceta(receta = receta)
-                    Text(
-                        text = receta.titulo,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-
-                    Text(
-                        text = receta.descripcion,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    Text(
-                        text = "Tiempo: ${receta.tiempoMinutos} minutos",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-
-                    Button(
-                        onClick = { onVerReceta(receta.id) }
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text("Ver preparación")
+                        FotoReceta(receta = receta)
+
+                        Text(
+                            text = receta.titulo,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+
+                        Text(
+                            text = receta.descripcion,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        Text(
+                            text = "Tiempo: ${receta.tiempoMinutos} minutos",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+
+                        Button(
+                            onClick = {
+                                onVerReceta(receta.id)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Ver preparación")
+                        }
                     }
                 }
             }

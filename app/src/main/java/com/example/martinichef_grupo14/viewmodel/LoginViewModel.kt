@@ -1,10 +1,16 @@
 package com.example.martinichef_grupo14.viewmodel
 
+import android.app.Application
 import android.util.Patterns
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.martinichef_grupo14.data.UsuarioDataStore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.io.IOException
+import java.security.GeneralSecurityException
 
 data class LoginUiState(
     val email: String = "",
@@ -13,81 +19,117 @@ data class LoginUiState(
     val cargando: Boolean = false
 )
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(
+    application: Application
+) : AndroidViewModel(application) {
+
+    private val usuarioDataStore = UsuarioDataStore(application)
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState = _uiState.asStateFlow()
 
     fun onEmailChanged(nuevoEmail: String) {
+        if (_uiState.value.cargando) return
+
         _uiState.update {
-            it.copy(
-                email = nuevoEmail,
-                error = null
-            )
+            it.copy(email = nuevoEmail, error = null)
         }
     }
 
     fun onPasswordChanged(nuevaPassword: String) {
+        if (_uiState.value.cargando) return
+
         _uiState.update {
-            it.copy(
-                password = nuevaPassword,
-                error = null
-            )
+            it.copy(password = nuevaPassword, error = null)
         }
     }
 
     fun ingresar(onIngresoCorrecto: () -> Unit) {
+        if (_uiState.value.cargando) return
         if (!validarCampos()) return
 
-        val state = _uiState.value
+        val datos = _uiState.value
 
-        val correoCorrecto = state.email.trim().equals(
-            "demo@martinichef.cl",
-            ignoreCase = true
-        )
+        _uiState.update {
+            it.copy(cargando = true, error = null)
+        }
 
-        val passwordCorrecta = state.password == "Martini123"
+        viewModelScope.launch {
+            try {
+                if (!usuarioDataStore.tieneCuentaRegistrada()) {
+                    _uiState.update {
+                        it.copy(
+                            error = "Primero registra tu cuenta en este dispositivo."
+                        )
+                    }
+                    return@launch
+                }
 
-        if (correoCorrecto && passwordCorrecta) {
-            _uiState.update {
-                it.copy(
-                    password = "",
-                    error = null
+                val ingresoCorrecto = usuarioDataStore.verificarCredenciales(
+                    email = datos.email,
+                    password = datos.password
                 )
-            }
 
-            onIngresoCorrecto()
+                if (ingresoCorrecto) {
+                    _uiState.update {
+                        it.copy(
+                            email = datos.email.trim(),
+                            password = "",
+                            error = null
+                        )
+                    }
 
-        } else {
-            _uiState.update {
-                it.copy(
-                    error = "Correo o contraseña de demostración incorrectos"
-                )
+                    onIngresoCorrecto()
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            error = "El correo o la contraseña son incorrectos."
+                        )
+                    }
+                }
+            } catch (_: IOException) {
+                mostrarErrorLectura()
+            } catch (_: GeneralSecurityException) {
+                mostrarErrorLectura()
+            } catch (_: IllegalArgumentException) {
+                mostrarErrorLectura()
+            } finally {
+                _uiState.update {
+                    it.copy(cargando = false)
+                }
             }
         }
     }
 
-    fun validarCampos(): Boolean {
-        val state = _uiState.value
-        val correo = state.email.trim()
+    private fun mostrarErrorLectura() {
+        _uiState.update {
+            it.copy(
+                error = "No se pudo comprobar la cuenta guardada. Intenta nuevamente."
+            )
+        }
+    }
 
-        val mensajeError = when {
+    fun validarCampos(): Boolean {
+        val datos = _uiState.value
+        val correo = datos.email.trim()
+
+        val mensaje = when {
             correo.isBlank() ->
                 "Ingresa tu correo electrónico"
 
             !Patterns.EMAIL_ADDRESS.matcher(correo).matches() ->
                 "Ingresa un correo electrónico válido"
 
-            state.password.isBlank() ->
+            datos.password.isBlank() ->
                 "Ingresa tu contraseña"
 
             else -> null
         }
 
         _uiState.update {
-            it.copy(error = mensajeError)
+            it.copy(error = mensaje)
         }
 
-        return mensajeError == null
+        return mensaje == null
     }
 }

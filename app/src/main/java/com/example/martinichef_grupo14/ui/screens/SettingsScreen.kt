@@ -29,7 +29,6 @@ fun SettingsScreen(
         ) {
             CircularProgressIndicator()
         }
-
         return
     }
 
@@ -41,18 +40,20 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Ajustes de MartiniChef",
+            text = "Ajustes",
             style = MaterialTheme.typography.headlineMedium
         )
 
         Text(
-            text = "Personaliza la apariencia de la aplicación."
+            text = "Haz que MartiniChef se sienta como tu cocina.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         HorizontalDivider()
 
         Text(
-            text = "Modo de apariencia",
+            text = "Apariencia",
             style = MaterialTheme.typography.titleLarge
         )
 
@@ -65,7 +66,9 @@ fun SettingsScreen(
                 onClick = {
                     viewModel.cambiarModoOscuro(false)
                 },
-                label = { Text("Modo día") },
+                label = {
+                    Text("Modo día")
+                },
                 modifier = Modifier.weight(1f)
             )
 
@@ -74,12 +77,12 @@ fun SettingsScreen(
                 onClick = {
                     viewModel.cambiarModoOscuro(true)
                 },
-                label = { Text("Modo noche") },
+                label = {
+                    Text("Modo noche")
+                },
                 modifier = Modifier.weight(1f)
             )
         }
-
-        HorizontalDivider()
 
         Text(
             text = "Tamaño del texto",
@@ -104,7 +107,9 @@ fun SettingsScreen(
                     onClick = {
                         viewModel.cambiarEscalaTexto(escala)
                     },
-                    label = { Text(nombre) },
+                    label = {
+                        Text(nombre)
+                    },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -114,11 +119,11 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Vista previa",
+                    text = "Así se verá tu texto",
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -139,6 +144,22 @@ fun SettingsScreen(
 
         HorizontalDivider()
 
+        Text(
+            text = "Mi cuenta",
+            style = MaterialTheme.typography.titleLarge
+        )
+
+        OutlinedButton(
+            onClick = {
+                navController.navigate("resumen") {
+                    launchSingleTop = true
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Ver y editar mis datos")
+        }
+
         OutlinedButton(
             onClick = {
                 navController.navigate("perfil") {
@@ -147,8 +168,10 @@ fun SettingsScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Foto de perfil")
+            Text("Cambiar mi foto de perfil")
         }
+
+        HorizontalDivider()
 
         Button(
             onClick = {
@@ -159,7 +182,30 @@ fun SettingsScreen(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Volver al Inicio")
+            Text("Volver al inicio")
         }
+
+        OutlinedButton(
+            onClick = {
+                navController.navigate("login") {
+                    // Elimina las pantallas anteriores del historial.
+                    popUpTo(navController.graph.id) {
+                        inclusive = false
+                    }
+
+                    launchSingleTop = true
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Cerrar sesión")
+        }
+
+        Text(
+            text = "Al cerrar sesión conservarás tu perfil, " +
+                    "tu foto y tus preferencias en este dispositivo.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

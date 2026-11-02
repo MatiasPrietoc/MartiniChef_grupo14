@@ -15,11 +15,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.martinichef_grupo14.repository.AprendizajeRepository
 import com.example.martinichef_grupo14.repository.RecetasRepository
 import com.example.martinichef_grupo14.ui.components.BarraNavegacion
 import com.example.martinichef_grupo14.ui.screens.*
 import com.example.martinichef_grupo14.viewmodel.*
-import com.example.martinichef_grupo14.repository.AprendizajeRepository
 
 @Composable
 fun AppNavigation(
@@ -31,9 +31,11 @@ fun AppNavigation(
     val usuarioViewModel: UsuarioViewModel = viewModel()
     val loginViewModel: LoginViewModel = viewModel()
     val perfilViewModel: PerfilViewModel = viewModel()
+
     val loginState by loginViewModel.uiState.collectAsState()
     val entradaActual by navController.currentBackStackEntryAsState()
     val rutaActual = entradaActual?.destination?.route
+
     val mostrarBarra = rutaActual in listOf(
         "pantalla_principal",
         "recetas",
@@ -41,6 +43,22 @@ fun AppNavigation(
         "perfil",
         "settings"
     )
+
+    val volverAlInicio: () -> Unit = {
+        val encontroInicio = navController.popBackStack(
+            route = "pantalla_principal",
+            inclusive = false
+        )
+
+        if (!encontroInicio) {
+            navController.navigate("pantalla_principal") {
+                popUpTo(navController.graph.id) {
+                    inclusive = false
+                }
+                launchSingleTop = true
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -53,7 +71,6 @@ fun AppNavigation(
                                 popUpTo("pantalla_principal") {
                                     saveState = true
                                 }
-
                                 launchSingleTop = true
                                 restoreState = true
                             }
@@ -63,7 +80,6 @@ fun AppNavigation(
             }
         }
     ) { espacioInterior ->
-
         NavHost(
             navController = navController,
             startDestination = "intro",
@@ -79,7 +95,6 @@ fun AppNavigation(
                             popUpTo("intro") {
                                 inclusive = true
                             }
-
                             launchSingleTop = true
                         }
                     }
@@ -104,7 +119,6 @@ fun AppNavigation(
                                 popUpTo("login") {
                                     inclusive = true
                                 }
-
                                 launchSingleTop = true
                             }
                         }
@@ -135,7 +149,8 @@ fun AppNavigation(
                     recetas = RecetasRepository.obtenerRecetas(),
                     onVerReceta = { id ->
                         navController.navigate("detalle_receta/$id")
-                    }
+                    },
+                    onVolverInicio = volverAlInicio
                 )
             }
 
@@ -148,7 +163,6 @@ fun AppNavigation(
                 )
             ) { entrada ->
                 val id = entrada.arguments?.getInt("id")
-
                 val receta = id?.let {
                     RecetasRepository.buscarPorId(it)
                 }
@@ -160,12 +174,14 @@ fun AppNavigation(
                     }
                 )
             }
+
             composable("aprender") {
                 AprenderScreen(
                     contenidos = AprendizajeRepository.obtenerContenidos(),
                     onVerContenido = { id ->
                         navController.navigate("detalle_aprendizaje/$id")
-                    }
+                    },
+                    onVolverInicio = volverAlInicio
                 )
             }
 
@@ -178,7 +194,6 @@ fun AppNavigation(
                 )
             ) { entrada ->
                 val id = entrada.arguments?.getInt("id")
-
                 val contenido = id?.let {
                     AprendizajeRepository.buscarPorId(it)
                 }

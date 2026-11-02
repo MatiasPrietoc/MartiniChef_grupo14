@@ -1,170 +1,193 @@
-# MartiniChef - Grupo 14
+# MartiniChef — Grupo 14
 
-Aplicación móvil desarrollada para la asignatura Desarrollo de Aplicaciones Móviles (DSY1105) de Duoc UC.
+Proyecto académico de la asignatura Desarrollo de Aplicaciones Móviles
+(DSY1105), Duoc UC.
 
 ## Integrantes
 
-- Matías Prieto
-- Tomás Gutiérrez
+- Matías Prieto.
+- Tomás Gutiérrez.
 
 ## Descripción
 
-MartiniChef es una aplicación móvil desarrollada en Kotlin con Jetpack Compose. Su objetivo es ofrecer una interfaz simple para registrar usuarios, administrar información de perfil y consultar recetas de cocina.
+MartiniChef es una aplicación Android para consultar recetas, aprender
+conceptos básicos de cocina y administrar un perfil personal.
 
-El proyecto utiliza arquitectura MVVM, navegación entre pantallas, validación de formularios, almacenamiento local, animaciones y acceso a recursos del dispositivo.
+El proyecto es una simulación académica desarrollada con Kotlin,
+Jetpack Compose y Material Design 3. Utiliza almacenamiento local;
+no depende de un servidor ni de un servicio de autenticación externo.
 
 ## Funcionalidades
 
-### Navegación
+### Presentación e ingreso
 
-La aplicación permite navegar entre las siguientes pantallas:
+- Presentación del logo con una transición de desvanecimiento.
+- Registro de una cuenta local por dispositivo.
+- Ingreso con el correo y la contraseña registrados.
+- Validación de campos y mensajes de error.
+- Cierre de sesión con regreso a la pantalla de ingreso.
 
-- Pantalla principal.
-- Registro de usuario.
-- Resumen del registro.
-- Perfil.
-- Configuración.
-- Catálogo de recetas.
-- Detalle de receta.
+Para comenzar, selecciona «Crear mi cuenta», completa el registro
+y luego ingresa con esas mismas credenciales.
 
-### Registro y validaciones
+### Inicio personalizado
 
-- Validación de nombre.
-- Validación de correo electrónico.
-- Validación de contraseña.
-- Validación de dirección.
-- Aceptación de términos y condiciones.
-- Mensajes visuales e íconos de error.
-- Lógica administrada desde `UsuarioViewModel`.
+- Saludo con el nombre del perfil guardado.
+- Fotografía de perfil y acceso para cambiarla.
+- Receta destacada con acceso a su preparación.
+- Accesos al catálogo, aprendizaje, datos personales y ajustes.
+- Consejos de cocina con animación y preferencia persistente.
 
-### Catálogo de recetas
+### Datos personales
 
-- Listado de recetas MartiniChef.
-- Búsqueda por nombre o categoría.
-- Información de categoría y tiempo de preparación.
-- Detalle con ingredientes y pasos.
-- Navegación entre catálogo y detalle.
+- Consulta de nombre, correo y dirección guardados.
+- Edición con validación de campos.
+- Opciones para guardar o cancelar los cambios.
+- Actualización del saludo después de guardar el nombre.
+- Conservación de la contraseña al editar los datos.
 
-### Recetas favoritas
+Si se modifica el correo, el siguiente ingreso debe realizarse
+con el nuevo correo y la misma contraseña.
 
-- Permite agregar y quitar recetas favoritas.
-- Animación de color y tamaño del corazón.
-- Mensaje visual de confirmación.
-- Persistencia local de favoritos mediante DataStore.
-- Las favoritas permanecen guardadas al cerrar y abrir la aplicación.
+### Fotografía de perfil
 
-### Recursos nativos
+- Selección de una imagen desde la galería.
+- Captura mediante la aplicación de cámara.
+- Solicitud de permiso de cámara cuando corresponde.
+- Uso de FileProvider para la captura.
+- Copia de la fotografía al almacenamiento interno.
+- Visualización de la misma fotografía en el perfil y en el inicio.
+- Conservación de la fotografía después de reabrir la aplicación.
 
-- Acceso a la cámara.
-- Selección de imágenes desde la galería.
-- Manejo de permisos.
-- Uso de FileProvider.
+### Recetas
 
-### Diseño y animaciones
+Catálogo con fotografías ilustrativas, tiempos, ingredientes y pasos:
 
-- Jetpack Compose y Material Design 3.
-- Diseño adaptable para distintos tamaños de pantalla.
-- `animateColorAsState`.
-- `animateFloatAsState`.
-- `AnimatedVisibility`.
-- Retroalimentación visual durante la interacción.
+- Pasta al tomate.
+- Ensalada fresca.
+- Crema de zapallo y zanahoria.
+- Panqueques de avena y plátano.
+
+Incluye navegación al detalle y regreso al inicio.
+
+### Aprendizaje
+
+- Filtros para mostrar todos los contenidos, videos o cursos.
+- Dos guías de videos simulados.
+- Dos cursos simulados con lecciones.
+- Pantallas de detalle con información para consultar.
+
+Los videos son guías escritas de demostración; no incluyen reproducción
+audiovisual. Los cursos no ofrecen certificaciones ni servicios reales.
+
+### Apariencia
+
+- Paleta cálida inspirada en la cocina.
+- Modo día y modo noche.
+- Tamaños de texto pequeño, normal y grande.
+- Persistencia de las preferencias.
+- Diseños según el ancho disponible.
+- Desplazamiento en pantallas con contenido extenso.
 
 ## Arquitectura
 
-El proyecto utiliza MVVM para separar la interfaz de la lógica.
+El proyecto separa las responsabilidades en:
 
-```text
-model/
-    Receta.kt
-    UsuarioUiState.kt
+- `model`: estructuras de datos.
+- `data`: almacenamiento local mediante DataStore.
+- `repository`: catálogos de recetas y aprendizaje.
+- `viewmodel`: validaciones, estado y operaciones de guardado.
+- `ui/screens`: pantallas de Jetpack Compose.
+- `ui/components`: componentes visuales reutilizables.
+- `ui/theme`: colores, tipografía y tema.
+- `navigation`: rutas y conexiones entre pantallas.
 
-data/
-    EstadoDataStore.kt
-    FavoritosDataStore.kt
+La interfaz observa estados mediante StateFlow y se actualiza
+cuando cambian los datos correspondientes.
 
-viewmodel/
-    EstadoViewModel.kt
-    MainViewModel.kt
-    PerfilViewModel.kt
-    RecetasViewModel.kt
-    UsuarioViewModel.kt
+## Almacenamiento local
 
-ui/screens/
-    PantallaPrincipal.kt
-    RegistroScreen.kt
-    ResumenScreen.kt
-    ProfileScreen.kt
-    SettingsScreen.kt
-    RecetasScreen.kt
-    DetalleRecetaScreen.kt
+La aplicación utiliza DataStore Preferences:
 
-navigation/
-    AppNavigation.kt
-```
+| Componente | Información |
+| --- | --- |
+| UsuarioDataStore | Nombre, correo, dirección y datos derivados para comprobar la contraseña |
+| PerfilDataStore | Nombre del archivo de la fotografía |
+| AjustesDataStore | Modo de apariencia y escala del texto |
+| EstadoDataStore | Preferencia para mostrar consejos |
 
-## Tecnologías utilizadas
+La contraseña no se guarda como texto original. Se deriva mediante
+PBKDF2 con una sal aleatoria.
+
+La fotografía se almacena como archivo en el almacenamiento interno.
+Las recetas y los contenidos educativos son listas locales definidas
+en los repositorios; no son tablas de una base de datos relacional.
+
+## Tecnologías
 
 - Kotlin.
-- Android Studio.
 - Jetpack Compose.
 - Material Design 3.
 - Navigation Compose.
-- ViewModel.
-- StateFlow.
-- DataStore.
+- ViewModel y AndroidViewModel.
+- StateFlow y corrutinas.
+- DataStore Preferences.
 - Activity Result API.
 - FileProvider.
-- Git y GitHub.
-- Trello.
+- Coil.
+- Git, GitHub y Trello.
 
-## Requisitos
-
-- Android Studio.
-- JDK incluido con Android Studio.
-- Emulador o dispositivo Android API 24 o superior.
-- Conexión a internet para descargar dependencias la primera vez.
-
-## Cómo ejecutar el proyecto
+## Ejecución
 
 1. Clonar el repositorio:
 
-```bash
-git clone https://github.com/MatiasPrietoc/MartiniChef_grupo14.git
-```
+   ```bash
+   git clone https://github.com/MatiasPrietoc/MartiniChef_grupo14.git
+   ```
 
-2. Abrir Android Studio.
+2. Abrir la carpeta del proyecto en Android Studio.
+3. Instalar el SDK Android requerido por el proyecto: API 37.
+4. Esperar la sincronización de Gradle y la descarga de dependencias.
+5. Seleccionar un emulador o dispositivo con Android API 24 o superior.
+6. Ejecutar `app`.
+7. Crear la cuenta local desde la pantalla de ingreso.
 
-3. Seleccionar **Open**.
+La primera sincronización requiere conexión a internet.
 
-4. Abrir la carpeta `MartiniChef_grupo14`.
+## Comprobaciones manuales
 
-5. Esperar que finalice la sincronización de Gradle.
+- Registro e ingreso con la cuenta local.
+- Rechazo de credenciales incorrectas.
+- Consulta y edición de datos personales.
+- Cancelación de cambios sin modificar el perfil guardado.
+- Actualización del nombre mostrado en el inicio.
+- Selección, captura y conservación de la foto.
+- Navegación entre inicio, recetas, aprendizaje y ajustes.
+- Cierre de sesión y nuevo ingreso.
+- Conservación de datos después de reabrir la aplicación.
+- Cambio de apariencia y tamaño de texto.
+- Activación de consejos y mensaje de guardado.
 
-6. Seleccionar un emulador o dispositivo físico.
+La comprobación del diseño en tablet está pendiente.
 
-7. Presionar el botón verde **Run app**.
+## Alcance de la simulación
 
-## Distribución del trabajo
+- Se mantiene una cuenta local por dispositivo.
+- No existe autenticación con un servidor.
+- No se incluyen recuperación de contraseña ni sincronización entre dispositivos.
+- Los datos locales se eliminan al borrar los datos de la aplicación.
+- Los contenidos educativos son demostraciones académicas.
+- Las fotografías de recetas son ilustrativas.
 
-### Matías Prieto
+## Referencias visuales
 
-- Estructura inicial del proyecto.
-- Formulario de registro y validaciones.
-- Navegación base.
-- Cámara y galería.
-- Vistas adaptativas.
-- Estado y animaciones iniciales.
+Se utilizó https://gourmet.cl como referencia de ideas visuales
+relacionadas con cocina.
 
-### Tomás Gutiérrez
+El logo y las imágenes ilustrativas de las recetas se generaron
+con asistencia de inteligencia artificial.
 
-- Modelo y catálogo de recetas.
-- Buscador por nombre y categoría.
-- Pantalla de detalle.
-- Navegación entre catálogo y detalle.
-- Animación de recetas favoritas.
-- Persistencia de favoritos mediante DataStore.
-- Actualización de documentación.
+## Enlaces
 
-## Control de versiones
-
-El desarrollo se realizó mediante ramas de funcionalidades, commits técnicos y Pull Requests para integrar los cambios a la rama principal.
+- Repositorio: https://github.com/MatiasPrietoc/MartiniChef_grupo14
+- Trello: https://trello.com/b/f2L94EoY/master-martini-grupo-14

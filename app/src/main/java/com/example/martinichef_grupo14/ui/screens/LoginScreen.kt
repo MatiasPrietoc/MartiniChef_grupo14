@@ -1,5 +1,6 @@
 package com.example.martinichef_grupo14.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -8,9 +9,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.martinichef_grupo14.R
 
 @Composable
 fun LoginScreen(
@@ -27,32 +31,36 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .safeDrawingPadding()
+            .imePadding()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "MartiniChef",
-            style = MaterialTheme.typography.headlineLarge
+        Image(
+            painter = painterResource(R.drawable.martini_chef_logo),
+            contentDescription = "Logo de MartiniChef",
+            modifier = Modifier.size(160.dp)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(Modifier.height(16.dp))
 
         Text(
-            text = "Inicia sesión para continuar",
-            style = MaterialTheme.typography.bodyLarge
+            text = "Tu cocina empieza aquí",
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(12.dp))
+
+        Spacer(Modifier.height(8.dp))
 
         Text(
-            text = "Prueba entrada aplicacion\n" +
-                    "Correo: demo@martinichef.cl\n" +
-                    "Contraseña: Martini123",
-            style = MaterialTheme.typography.bodySmall
+            text = "Ingresa a tu cuenta y descubre qué preparar hoy.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(Modifier.height(28.dp))
 
         OutlinedTextField(
             value = email,
@@ -66,7 +74,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
 
         OutlinedTextField(
             value = password,
@@ -82,31 +90,50 @@ fun LoginScreen(
         )
 
         error?.let { mensaje ->
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
             Text(
                 text = mensaje,
-                color = MaterialTheme.colorScheme.error
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(Modifier.height(24.dp))
 
         Button(
             onClick = onIngresar,
             enabled = !cargando,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = if (cargando) "Ingresando..." else "Ingresar"
-            )
+            if (cargando) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+
+                Spacer(Modifier.width(8.dp))
+            }
+
+            Text(if (cargando) "Ingresando..." else "Entrar a mi cocina")
         }
 
         TextButton(
             onClick = onRegistro,
             enabled = !cargando
         ) {
-            Text("No tengo cuenta: registrarme")
+            Text("Crear mi cuenta")
         }
+
+        Spacer(Modifier.height(16.dp))
+
+        Text(
+            text = "Demostración académica · Una cuenta local por dispositivo",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
     }
 }

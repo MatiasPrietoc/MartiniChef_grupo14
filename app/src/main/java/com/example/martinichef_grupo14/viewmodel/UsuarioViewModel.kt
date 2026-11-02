@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.security.GeneralSecurityException
 
 data class RegistroUiState(
     val nombre: String = "",
@@ -39,7 +40,6 @@ class UsuarioViewModel(
     private val _uiState = MutableStateFlow(RegistroUiState())
     val uiState: StateFlow<RegistroUiState> = _uiState.asStateFlow()
 
-    // Recupera el perfil guardado una sola vez al crear el ViewModel.
     init {
         viewModelScope.launch {
             try {
@@ -54,15 +54,12 @@ class UsuarioViewModel(
                         )
                     }
                 }
-
-            } catch (e: IOException) {
+            } catch (_: IOException) {
                 _uiState.update {
                     it.copy(
-                        errorGuardado =
-                            "No se pudo recuperar el perfil guardado."
+                        errorGuardado = "No se pudo recuperar el perfil."
                     )
                 }
-
             } finally {
                 _uiState.update {
                     it.copy(cargandoPerfil = false)
@@ -76,33 +73,30 @@ class UsuarioViewModel(
             it.copy(
                 nombre = nuevoNombre,
                 nombreError = if (nuevoNombre.isBlank()) {
-                    "El nombre no puede estar vacío"
-                } else {
-                    null
-                },
-                esValido = false
+                    "El nombre es obligatorio"
+                } else null,
+                esValido = false,
+                errorGuardado = null
             )
         }
     }
 
     fun onEmailChanged(nuevoEmail: String) {
-        val emailValido = Patterns.EMAIL_ADDRESS
-            .matcher(nuevoEmail)
-            .matches()
+        val correo = nuevoEmail.trim()
 
         _uiState.update {
             it.copy(
                 email = nuevoEmail,
                 emailError = when {
-                    nuevoEmail.isBlank() ->
-                        "El correo es obligatorio"
+                    correo.isBlank() -> "El correo es obligatorio"
 
-                    !emailValido ->
+                    !Patterns.EMAIL_ADDRESS.matcher(correo).matches() ->
                         "Ingresa un correo electrónico válido"
 
                     else -> null
                 },
-                esValido = false
+                esValido = false,
+                errorGuardado = null
             )
         }
     }
@@ -111,12 +105,13 @@ class UsuarioViewModel(
         _uiState.update {
             it.copy(
                 password = nuevaPassword,
-                passwordError = if (nuevaPassword.length < 6) {
+                passwordError = if (
+                    nuevaPassword.isBlank() || nuevaPassword.length < 6
+                ) {
                     "La contraseña debe tener al menos 6 caracteres"
-                } else {
-                    null
-                },
-                esValido = false
+                } else null,
+                esValido = false,
+                errorGuardado = null
             )
         }
     }
@@ -127,10 +122,9 @@ class UsuarioViewModel(
                 direccion = nuevaDireccion,
                 direccionError = if (nuevaDireccion.isBlank()) {
                     "La dirección es obligatoria"
-                } else {
-                    null
-                },
-                esValido = false
+                } else null,
+                esValido = false,
+                errorGuardado = null
             )
         }
     }
@@ -141,16 +135,17 @@ class UsuarioViewModel(
                 aceptaTerminos = acepta,
                 terminosError = if (!acepta) {
                     "Debes aceptar los términos"
-                } else {
-                    null
-                },
-                esValido = false
+                } else null,
+                esValido = false,
+                errorGuardado = null
             )
         }
     }
 
     fun guardarRegistro(onGuardado: () -> Unit) {
-        if (_uiState.value.guardando) return
+        if (_uiState.value.guardando || _uiState.value.cargandoPerfil) {
+            return
+        }
 
         if (!validarFormulario()) return
 
@@ -168,19 +163,25 @@ class UsuarioViewModel(
                 usuarioDataStore.guardarPerfil(
                     nombre = datos.nombre,
                     email = datos.email,
-                    direccion = datos.direccion
+                    direccion = datos.direccion,
+                    password = datos.password
                 )
 
-                onGuardado()
-
-            } catch (e: IOException) {
                 _uiState.update {
                     it.copy(
-                        errorGuardado =
-                            "No se pudo guardar el perfil. Intenta nuevamente."
+                        nombre = datos.nombre.trim(),
+                        email = datos.email.trim(),
+                        direccion = datos.direccion.trim(),
+                        password = "",
+                        esValido = true
                     )
                 }
 
+                onGuardado()
+            } catch (_: IOException) {
+                mostrarErrorGuardado()
+            } catch (_: GeneralSecurityException) {
+                mostrarErrorGuardado()
             } finally {
                 _uiState.update {
                     it.copy(guardando = false)
@@ -189,55 +190,56 @@ class UsuarioViewModel(
         }
     }
 
-    fun validarFormulario(): Boolean {
-        val state = _uiState.value
-
-        val nombreErr = if (state.nombre.isBlank()) {
-            "El nombre es obligatorio"
-        } else {
-            null
+    private fun mostrarErrorGuardado() {
+        _uiState.update {
+            it.copy(
+                esValido = false,
+                errorGuardado = "No se pudo guardar la cuenta. Intenta nuevamente."
+            )
         }
+    }
 
-        val emailErr = if (
-            !Patterns.EMAIL_ADDRESS.matcher(state.email).matches()
+    fun validarFormulario(): Boolean {
+        val datos = _uiState.value
+
+        val nombreError = if (datos.nombre.isBlank()) {
+            "El nombre es obligatorio"
+        } else null
+
+        val emailError = if (
+            !Patterns.EMAIL_ADDRESS.matcher(datos.email.trim()).matches()
         ) {
             "Correo inválido"
-        } else {
-            null
-        }
+        } else null
 
-        val passErr = if (state.password.length < 6) {
+        val passwordError = if (
+            datos.password.isBlank() || datos.password.length < 6
+        ) {
             "Mínimo 6 caracteres"
-        } else {
-            null
-        }
+        } else null
 
-        val direccionErr = if (state.direccion.isBlank()) {
+        val direccionError = if (datos.direccion.isBlank()) {
             "La dirección es obligatoria"
-        } else {
-            null
-        }
+        } else null
 
-        val terminosErr = if (!state.aceptaTerminos) {
+        val terminosError = if (!datos.aceptaTerminos) {
             "Debes aceptar los términos"
-        } else {
-            null
-        }
+        } else null
 
         val tieneErrores =
-            nombreErr != null ||
-                    emailErr != null ||
-                    passErr != null ||
-                    direccionErr != null ||
-                    terminosErr != null
+            nombreError != null ||
+                    emailError != null ||
+                    passwordError != null ||
+                    direccionError != null ||
+                    terminosError != null
 
         _uiState.update {
             it.copy(
-                nombreError = nombreErr,
-                emailError = emailErr,
-                passwordError = passErr,
-                direccionError = direccionErr,
-                terminosError = terminosErr,
+                nombreError = nombreError,
+                emailError = emailError,
+                passwordError = passwordError,
+                direccionError = direccionError,
+                terminosError = terminosError,
                 esValido = !tieneErrores
             )
         }

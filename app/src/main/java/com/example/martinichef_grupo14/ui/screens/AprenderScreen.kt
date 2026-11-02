@@ -18,7 +18,8 @@ import com.example.martinichef_grupo14.model.TipoContenido
 @Composable
 fun AprenderScreen(
     contenidos: List<ContenidoAprendizaje>,
-    onVerContenido: (Int) -> Unit
+    onVerContenido: (Int) -> Unit,
+    onVolverInicio: () -> Unit
 ) {
     var filtro by rememberSaveable {
         mutableStateOf("Todos")
@@ -32,109 +33,138 @@ fun AprenderScreen(
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    Column(
+        modifier = Modifier.fillMaxSize()
     ) {
-        item {
-            Text(
-                text = "Aprende con MartiniChef",
-                style = MaterialTheme.typography.headlineMedium
+        TextButton(
+            onClick = onVolverInicio,
+            modifier = Modifier.padding(
+                horizontal = 16.dp,
+                vertical = 8.dp
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Descubre ideas y técnicas para comenzar a cocinar.",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Contenidos de demostración académica",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                listOf("Todos", "Videos", "Cursos").forEach { opcion ->
-                    FilterChip(
-                        selected = filtro == opcion,
-                        onClick = { filtro = opcion },
-                        label = { Text(opcion) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
+        ) {
+            Text("← Volver al inicio")
         }
 
-        items(
-            items = contenidosVisibles,
-            key = { contenido -> contenido.id }
-        ) { contenido ->
-            val esVideo = contenido.tipo == TipoContenido.VIDEO
+        HorizontalDivider()
 
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentPadding = PaddingValues(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Text(
+                    text = "Aprende con MartiniChef",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Descubre ideas y técnicas para comenzar a cocinar.",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Guías de videos y cursos simulados",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (esVideo) {
-                                Icons.Default.PlayCircle
-                            } else {
-                                Icons.Default.School
+                    listOf("Todos", "Videos", "Cursos").forEach { opcion ->
+                        FilterChip(
+                            selected = filtro == opcion,
+                            onClick = {
+                                filtro = opcion
                             },
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-
-                        Text(
-                            text = if (esVideo) "Video simulado" else "Curso simulado",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            label = {
+                                Text(opcion)
+                            },
+                            modifier = Modifier.weight(1f)
                         )
                     }
+                }
+            }
 
-                    Text(
-                        text = contenido.titulo,
-                        style = MaterialTheme.typography.titleLarge
-                    )
+            items(
+                items = contenidosVisibles,
+                key = { it.id }
+            ) { contenido ->
+                val esVideo = contenido.tipo == TipoContenido.VIDEO
 
-                    Text(
-                        text = contenido.descripcion,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    Text(
-                        text = "Duración estimada: " +
-                                "${contenido.duracionMinutos} minutos",
-                        style = MaterialTheme.typography.labelLarge
-                    )
-
-                    Button(
-                        onClick = { onVerContenido(contenido.id) }
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (esVideo) {
+                                    Icons.Default.PlayCircle
+                                } else {
+                                    Icons.Default.School
+                                },
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+
+                            Text(
+                                text = if (esVideo) {
+                                    "Video simulado"
+                                } else {
+                                    "Curso simulado"
+                                },
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
                         Text(
-                            text = if (esVideo) {
-                                "Ver guía del video"
-                            } else {
-                                "Ver lecciones"
-                            }
+                            text = contenido.titulo,
+                            style = MaterialTheme.typography.titleLarge
                         )
+
+                        Text(
+                            text = contenido.descripcion,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        Text(
+                            text = "Duración estimada: " +
+                                    "${contenido.duracionMinutos} minutos",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+
+                        Button(
+                            onClick = {
+                                onVerContenido(contenido.id)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = if (esVideo) {
+                                    "Ver guía del video"
+                                } else {
+                                    "Ver lecciones"
+                                }
+                            )
+                        }
                     }
                 }
             }
