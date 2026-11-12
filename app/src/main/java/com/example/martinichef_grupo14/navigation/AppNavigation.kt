@@ -181,7 +181,21 @@ fun AppNavigation(
                     onVerContenido = { id ->
                         navController.navigate("detalle_aprendizaje/$id")
                     },
-                    onVolverInicio = volverAlInicio
+                    onVolverInicio = volverAlInicio,
+                    onVerPublicaciones = {
+                        navController.navigate("publicaciones")
+                    }
+                )
+            }
+
+            composable("publicaciones") {
+                val postViewModel: PostViewModel = viewModel()
+                val estado by postViewModel.uiState.collectAsState()
+
+                PostScreen(
+                    estado = estado,
+                    onReintentar = { postViewModel.cargarPosts() },
+                    onVolver = { navController.popBackStack() }
                 )
             }
 

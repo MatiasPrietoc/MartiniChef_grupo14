@@ -19,7 +19,8 @@ import com.example.martinichef_grupo14.model.TipoContenido
 fun AprenderScreen(
     contenidos: List<ContenidoAprendizaje>,
     onVerContenido: (Int) -> Unit,
-    onVolverInicio: () -> Unit
+    onVolverInicio: () -> Unit,
+    onVerPublicaciones: () -> Unit
 ) {
     var filtro by rememberSaveable {
         mutableStateOf("Todos")
@@ -75,6 +76,15 @@ fun AprenderScreen(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                Spacer(Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = onVerPublicaciones,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Publicaciones de práctica")
+                }
 
                 Spacer(Modifier.height(16.dp))
 
